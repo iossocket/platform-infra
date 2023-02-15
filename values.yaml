@@ -1,1 +1,10 @@
-
+service:
+  name: vronk-redis-service
+  port: 6379
+podName: vronk-redis
+image: iossocket/vronk-redis:6.2.6.1
+probes:
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    failureThreshold: 10
