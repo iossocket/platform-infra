@@ -1,8 +1,19 @@
-service:
-  name: vronk-redis-service
-  port: 6379
-podName: vronk-redis
-image: iossocket/vronk-redis:6.2.6.1
+redis:
+  service:
+    name: vronk-redis-service
+    port: 6379
+  podName: vronk-redis
+  image: iossocket/vronk-redis:6.2.6.1
+rabbitmq:
+  service:
+    name: vronk-rabbitmq-service
+    managementPort: 15672
+    defaultPort: 5672
+  podName: vronk-rabbitmq
+  image: rabbitmq:management
+  user: rabbit-admin
+  pass: 123qwe
+  vhost: central
 probes:
   livenessProbe:
     initialDelaySeconds: 5
