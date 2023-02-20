@@ -98,3 +98,57 @@ spec:
               - rabbitmq-diagnostics -q ping
             initialDelaySeconds: {{ .Values.probes.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.livenessProbe.periodSeconds }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Values.mysql.serviceName }}
+  labels:
+    run: {{ .Values.mysql.serviceName }}
+spec:
+  ports:
+  - port: {{ .Values.mysql.port }}
+    targetPort: {{ .Values.mysql.port }}
+  selector:
+    defacementComponent: {{ .Values.mysql.podName }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Values.mysql.podName }}
+  labels:
+    defacementComponent: {{ .Values.mysql.podName }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      defacementComponent: {{ .Values.mysql.podName }}
+  template:
+    metadata:
+      labels:
+        defacementComponent: {{ .Values.mysql.podName }}
+    spec:
+      containers:
+      - image: nacos/nacos-mysql:5.7
+        name: {{ .Values.mysql.podName }}
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: {{ .Values.mysql.pvName }}
+          mountPath: /var/lib/mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "root"
+        - name: MYSQL_DATABASE
+          value: "nacos_devtest"
+        - name: MYSQL_USER
+          value: "nacos"
+        - name: MYSQL_PASSWORD
+          value: "nacos"
+      volumes:
+        - name: {{ .Values.mysql.pvName }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.mysql.pvName }}
+---

@@ -19,3 +19,11 @@ probes:
     initialDelaySeconds: 5
     periodSeconds: 5
     failureThreshold: 10
+
+mysql:
+  port: 3306
+  pvName: mysql-pv
+  storageClassName: nfs-client
+  storageSize: 2Gi
+  serviceName: mysql-service
+  podName: mysql-pod

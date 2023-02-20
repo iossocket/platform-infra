@@ -1,0 +1,92 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nacos-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: nacos
+spec:
+  ports:
+    - name: tcp-8848
+      protocol: TCP
+      port: 8848
+      targetPort: 8848
+  selector:
+    app: nacos
+  clusterIP: None
+  clusterIPs:
+    - None
+  type: ClusterIP
+  sessionAffinity: None
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  internalTrafficPolicy: Cluster
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: nacos
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: nacos
+spec:
+  serviceName: nacos-service
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nacos
+  template:
+    metadata:
+      labels:
+        app: nacos
+    spec:
+      volumes:
+        - name: volume-properties
+          configMap:
+            name: nacos-cm
+            items:
+              - key: application.properties
+                path: application.properties
+        - name: volume-cluster-conf
+          configMap:
+            name: nacos-cm
+            items:
+              - key: cluster.conf
+                path: cluster.conf
+      containers:
+        - name: nacos
+          image: 'nacos/nacos-server:v2.0.3'
+          ports:
+            - name: tcp-8848
+              containerPort: 8848
+              protocol: TCP
+          volumeMounts:
+            - name: volume-properties
+              readOnly: true
+              mountPath: /home/nacos/conf/application.properties
+              subPath: application.properties
+            - name: volume-cluster-conf
+              readOnly: true
+              mountPath: /home/nacos/conf/cluster.conf
+              subPath: cluster.conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nacos-external
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: external
+spec:
+  type: NodePort
+  ports:
+    - name: tcp-nacos-external
+      protocol: TCP
+      port: 8848
+      targetPort: 8848
+      nodePort: 31848
+  selector:
+    app: nacos
+---
